@@ -5,7 +5,9 @@ import {v1} from "uuid";
 type RootActionsType = changeTodolistFilterACType | removeTodolistACType | changeTodolistTitleACType | addTodolistACType
 
 
-export const todolistsReducer = (state: Array<TodolistType>, action: RootActionsType) => {
+const initState: Array<TodolistType> = []
+
+export const todolistsReducer = (state: Array<TodolistType> = initState, action: RootActionsType) => {
     switch (action.type) {
 
         case "CHANGE-TODOLIST-FILTER": {

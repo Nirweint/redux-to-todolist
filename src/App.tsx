@@ -1,16 +1,10 @@
-import React, {useReducer, useState} from 'react';
+import React from 'react';
 import './App.css';
 import {TaskType, Todolist} from './Todolist';
-import {v1} from 'uuid';
 import {AddItemForm} from "./AddItemForm";
-import {addTaskAC, changeTaskStatusAC, changeTaskTitleAC, removeTaskAC, tasksReducer} from "./state/tasks-reducer";
-import {
-    addTodolistAC,
-    changeTodolistFilterAC,
-    changeTodolistTitleAC,
-    removeTodolistAC,
-    todolistsReducer
-} from "./state/todolists-reducer";
+import {addTodolistAC} from "./state/todolists-reducer";
+import {useDispatch, useSelector} from "react-redux";
+import {rootReducerType} from "./state/store";
 
 export type FilterValuesType = "all" | "active" | "completed";
 export type TodolistType = {
@@ -25,52 +19,10 @@ export type TasksStateType = {
 
 
 function App() {
-    let todolistId1 = v1();
-    let todolistId2 = v1();
-
-    let [todolists, dispatchTodolists] = useReducer(todolistsReducer ,[
-        {id: todolistId1, title: "What to learn", filter: "all"},
-        {id: todolistId2, title: "What to buy", filter: "all"},
-    ])
-
-    let [tasks, dispatchTasks] = useReducer(tasksReducer ,{
-        [todolistId1]: [
-            {id: v1(), title: "HTML&CSS", isDone: true},
-            {id: v1(), title: "JS", isDone: true},
-        ],
-        [todolistId2]: [
-            {id: v1(), title: "Milk", isDone: true},
-            {id: v1(), title: "React Book", isDone: true},
-        ]
-    });
-
-    function removeTask(id: string, todolistId: string) {
-        dispatchTasks(removeTaskAC(id,todolistId))
-    }
-    function addTask(title: string, todolistId: string) {
-        const newId = v1()
-        dispatchTasks(addTaskAC(title,todolistId,newId))
-    }
-    function changeTaskStatus(id: string, isDone: boolean, todolistId: string) {
-        dispatchTasks(changeTaskStatusAC(id,isDone,todolistId ))
-    }
-    const changeTaskTitle = (id: string, title: string, todolistId: string) => {
-        dispatchTasks(changeTaskTitleAC(id, title,todolistId))
-    }
-
-    function changeTodolistFilter(value: FilterValuesType, todolistId: string) {
-        dispatchTodolists(changeTodolistFilterAC(value,todolistId))
-    }
-    function removeTodolist(todolistId: string) {
-        dispatchTodolists(removeTodolistAC(todolistId))
-        dispatchTasks(removeTodolistAC(todolistId))
-    }
-    const changeTodolistTitle = (todolistId: string, title: string) => {
-        dispatchTodolists(changeTodolistTitleAC(todolistId,title))
-    }
+    const dispatch = useDispatch()
+    const todolists = useSelector<rootReducerType, Array<TodolistType>>(state => state.todolists)
     const addTodolist = (title: string) => {
-        dispatchTodolists(addTodolistAC(title))
-        dispatchTasks(addTodolistAC(title))
+        dispatch(addTodolistAC(title))
     }
 
     return (
@@ -78,33 +30,12 @@ function App() {
             <AddItemForm onClick={addTodolist}/>
             {
                 todolists.map(tl => {
-                    let allTodolistTasks = tasks[tl.id];
-                    let tasksForTodolist = allTodolistTasks;
-
-                    if (tl.filter === "active") {
-                        tasksForTodolist = allTodolistTasks.filter(t => t.isDone === false);
-                    }
-                    if (tl.filter === "completed") {
-                        tasksForTodolist = allTodolistTasks.filter(t => t.isDone === true);
-                    }
-
                     return <Todolist
                         key={tl.id}
                         id={tl.id}
-                        title={tl.title}
-                        tasks={tasksForTodolist}
-                        removeTask={removeTask}
-                        changeFilter={changeTodolistFilter}
-                        addTask={addTask}
-                        changeTaskStatus={changeTaskStatus}
-                        filter={tl.filter}
-                        removeTodolist={removeTodolist}
-                        changeTaskTitle={changeTaskTitle}
-                        changeTodolistTitle={changeTodolistTitle}
                     />
                 })
             }
-
         </div>
     );
 }
